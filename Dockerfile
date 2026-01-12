@@ -1,16 +1,20 @@
-FROM n8nio/n8n:latest
+# Start with a Python-based image instead of an n8n-based one
+FROM python:3.11-slim
 
-USER root
-
-# Update and install Python using apt-get (Debian/Ubuntu)
+# Install Node.js (required to run n8n)
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-full \
-    build-essential \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g n8n@latest \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the environment variable so n8n knows where Python is
-ENV N8N_PYTHON_INTERPRETER=/usr/bin/python3
+# Set up n8n environment variables
+ENV N8N_PYTHON_INTERPRETER=/usr/local/bin/python3
+ENV N8N_BLOCK_INTERNAL_TASK_RUNNER=false
 
-USER node
+# Expose the n8n port
+EXPOSE 5678
+
+# Start n8n
+CMD ["n8n", "start"]
